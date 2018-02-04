@@ -12,17 +12,16 @@ class Util:
 		pass
 
 	def read_label(self, label_path):
-		with open(label_path) as f:
-			csv_reader = csv.reader(f, delimiter=",")
-			line = csv_reader[0]
+		line = list(open(label_path))[0].split(',')
+		print(line)
 
-			image_file_name = line[0]
-			class_label = line[1]
-			class_index = int(line[2])
-			x_min = float(line[3])
-			y_min = float(line[4])
-			x_max = float(line[5])
-			y_max = float(line[6])
+		image_file_name = line[0]
+		class_label = line[1]
+		class_index = int(line[2])
+		x_min = float(line[3])
+		y_min = float(line[4])
+		x_max = float(line[5])
+		y_max = float(line[6])
 
 		return image_file_name, class_label, class_index, x_min, y_min, x_max, y_max
 
@@ -48,7 +47,7 @@ class Preprocessing(Util):
 		ymins = [y_min]
 		ymaxs = [y_max]
 		classes_text = [class_label.encode('utf8')]
-		classes = [class_index]
+		classes = [class_index + 1]
 
 		tf_example = tf.train.Example(features=tf.train.Features(feature={
 		  'image/height': dataset_util.int64_feature(height),
@@ -69,11 +68,11 @@ class Preprocessing(Util):
 	def convert_to_tfrecords(self, images_folder_path, labels_folder_path, new_tfrecord_train_folder, new_tfrecord_test_folder, splitter, background_image_dim_1=640, background_image_dim_2=480):
 		images_train_list = os.listdir(images_folder_path)[0:splitter]
 		labels_train_list = os.listdir(labels_folder_path)[0:splitter]
-		images_test_list = os.listdir(images_folder_path)[splitter:]
-		labels_test_list = os.listdir(labels_folder_path)[splitter:]
+		images_test_list = os.listdir(images_folder_path)[splitter:1000]
+		labels_test_list = os.listdir(labels_folder_path)[splitter:1000]
 
 		''' generating tf records for training '''
-		writer = tf.python_io.TFRecordWriter(images_folder_path + os.sep + new_tfrecord_train_folder)
+		writer = tf.python_io.TFRecordWriter(new_tfrecord_train_folder)
 
 		for i in range(0, len(images_train_list)):
 			image_path = images_folder_path + os.sep + images_train_list[i]
@@ -85,7 +84,7 @@ class Preprocessing(Util):
 			writer.write(tf_example.SerializeToString())
 
 		''' generating tf records for testing '''
-		writer = tf.python_io.TFRecordWriter(images_folder_path + os.sep + new_tfrecord_test_folder)
+		writer = tf.python_io.TFRecordWriter(new_tfrecord_test_folder)
 
 		for i in range(0, len(images_test_list)):
 			image_path = images_folder_path + os.sep + images_test_list[i]
@@ -102,7 +101,7 @@ def main():
 	LABELS_FOLDER_PATH = 'G:/DL/data_logo/coco_data/overlayed_images/Labels'
 	NEW_TFRECORD_TRAIN_FOLDER = 'G:/DL/data_logo/coco_data/overlayed_images/TFTrainRecord.record'
 	NEW_TFRECORD_TEST_FOLDER = 'G:/DL/data_logo/coco_data/overlayed_images/TFTestRecord.record'
-	SPLITTER = 9500
+	SPLITTER = 950
 	BACKGROUND_IMAGE_DIM_1 = 640
 	BACKGROUND_IMAGE_DIM_2 = 480
 
@@ -111,3 +110,6 @@ def main():
 
 if __name__ == '__main__':
 	main()
+
+
+# python models/research/object_detection/train.py --logtostderr --train_dir=G:/DL/Realtime_Advertisement_Statistics_Using_CNN --pipeline_config_path=G:/DL/Realtime_Advertisement_Statistics_Using_CNN/faster_rcnn_inception_v2_coco.config
