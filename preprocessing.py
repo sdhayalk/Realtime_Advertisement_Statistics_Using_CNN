@@ -5,7 +5,7 @@ import os
 import io
 
 from PIL import Image
-from object_detection.utils import dataset_util
+from models.research.object_detection.utils import dataset_util
 
 class Util:
 	def __init__(self):
@@ -66,15 +66,30 @@ class Preprocessing(Util):
 		}))
 		return tf_example
 
-	def convert_to_tfrecords(self, images_folder_path, labels_folder_path, new_tfrecord_folder, background_image_dim_1=640, background_image_dim_2=480):
-		images_list = os.listdir(images_folder_path)
-		labels_list = os.listdir(labels_folder_path)
+	def convert_to_tfrecords(self, images_folder_path, labels_folder_path, new_tfrecord_train_folder, new_tfrecord_test_folder, splitter, background_image_dim_1=640, background_image_dim_2=480):
+		images_train_list = os.listdir(images_folder_path)[0:splitter]
+		labels_train_list = os.listdir(labels_folder_path)[0:splitter]
+		images_test_list = os.listdir(images_folder_path)[splitter:]
+		labels_test_list = os.listdir(labels_folder_path)[splitter:]
 
-		writer = tf.python_io.TFRecordWriter(images_folder_path + os.sep + new_tfrecord_folder)
+		''' generating tf records for training '''
+		writer = tf.python_io.TFRecordWriter(images_folder_path + os.sep + new_tfrecord_train_folder)
 
-		for i in range(0, len(images_list)):
-			image_path = images_folder_path + os.sep + images_list[i]
-			label_path = labels_folder_path + os.sep + labels_list[i]
+		for i in range(0, len(images_train_list)):
+			image_path = images_folder_path + os.sep + images_train_list[i]
+			label_path = labels_folder_path + os.sep + labels_train_list[i]
+
+			image_file_name, class_label, class_index, x_min, y_min, x_max, y_max = self.read_label(label_path)
+
+			tf_example = self.create_tf_example(image_path, image_file_name, class_label, class_index, x_min, y_min, x_max, y_max)
+			writer.write(tf_example.SerializeToString())
+
+		''' generating tf records for testing '''
+		writer = tf.python_io.TFRecordWriter(images_folder_path + os.sep + new_tfrecord_test_folder)
+
+		for i in range(0, len(images_test_list)):
+			image_path = images_folder_path + os.sep + images_test_list[i]
+			label_path = labels_folder_path + os.sep + labels_test_list[i]
 
 			image_file_name, class_label, class_index, x_min, y_min, x_max, y_max = self.read_label(label_path)
 
@@ -85,12 +100,14 @@ class Preprocessing(Util):
 def main():
 	IMAGES_FOLDER_PATH = 'G:/DL/data_logo/coco_data/overlayed_images/Images'
 	LABELS_FOLDER_PATH = 'G:/DL/data_logo/coco_data/overlayed_images/Labels'
-	NEW_TFRECORD_FOLDER = 'G:/DL/data_logo/coco_data/overlayed_images/TFRecord'
+	NEW_TFRECORD_TRAIN_FOLDER = 'G:/DL/data_logo/coco_data/overlayed_images/TFTrainRecord.record'
+	NEW_TFRECORD_TEST_FOLDER = 'G:/DL/data_logo/coco_data/overlayed_images/TFTestRecord.record'
+	SPLITTER = 9500
 	BACKGROUND_IMAGE_DIM_1 = 640
 	BACKGROUND_IMAGE_DIM_2 = 480
 
 	preprocssing = Preprocessing()
-	preprocssing.convert_to_tfrecords(IMAGES_FOLDER_PATH, LABELS_FOLDER_PATH, NEW_TFRECORD_FOLDER, background_image_dim_1=BACKGROUND_IMAGE_DIM_1, background_image_dim_2=BACKGROUND_IMAGE_DIM_2)
+	preprocssing.convert_to_tfrecords(IMAGES_FOLDER_PATH, LABELS_FOLDER_PATH, NEW_TFRECORD_TRAIN_FOLDER, NEW_TFRECORD_TEST_FOLDER, SPLITTER, background_image_dim_1=BACKGROUND_IMAGE_DIM_1, background_image_dim_2=BACKGROUND_IMAGE_DIM_2)
 
 if __name__ == '__main__':
 	main()
