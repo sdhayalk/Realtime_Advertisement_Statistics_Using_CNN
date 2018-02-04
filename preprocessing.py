@@ -40,7 +40,7 @@ class Preprocessing(Util):
 		width, height = image.size
 		print(width, height)
 
-		filename = str(image_file_name) + '.jpg'
+		filename = image_file_name
 		image_format = b'jpg'
 
 		xmins = [x_min]
@@ -83,9 +83,9 @@ class Preprocessing(Util):
 
 
 def main():
-	IMAGES_FOLDER_PATH = 
-	LABELS_FOLDER_PATH = 
-	NEW_TFRECORD_FOLDER = 
+	IMAGES_FOLDER_PATH = 'G:/DL/data_logo/coco_data/overlayed_images/Images'
+	LABELS_FOLDER_PATH = 'G:/DL/data_logo/coco_data/overlayed_images/Labels'
+	NEW_TFRECORD_FOLDER = 'G:/DL/data_logo/coco_data/overlayed_images/TFRecord'
 	BACKGROUND_IMAGE_DIM_1 = 640
 	BACKGROUND_IMAGE_DIM_2 = 480
 
